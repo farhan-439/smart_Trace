@@ -1,31 +1,80 @@
 # SmartTrace: Intelligent Boundary Detection Tool
 
-## 🧠 Overview
+A Java-based interactive tool for selecting and extracting regions from images with multiple selection methods.
 
-SmartTrace is a Java-based desktop application designed to intelligently detect object boundaries in images. Powered by Dijkstra’s algorithm and built with Swing, it allows users to select boundaries either manually or with intelligent auto-tracing. The application is optimized for performance using multithreading and `SwingWorker`, ensuring a responsive and smooth user experience.
+## Technical Overview
 
-## 🚀 Features
+This application implements different selection algorithms to create precise selections in images:
 
-- 🔍 **Intelligent Auto-Tracing**: Uses Dijkstra’s algorithm to detect optimal paths along object edges.
-- ✏️ **Manual Selection Mode**: Users can manually outline boundaries for finer control.
-- ⚡ **Multithreaded UI**: Real-time responsiveness using Java's `SwingWorker` for background computation.
-- 💾 **Interactive Visualization**: View and modify paths live on the image canvas.
-- ⏱️ **Performance Boost**: Reduces boundary selection time by up to 65% compared to manual methods.
+- **Point-to-Point Selection**: Simple straight-line connection between selected points
+- **Intelligent Scissors**: Edge-aware selection that finds optimal paths along image boundaries
+  - `CrossGradMono`: Grayscale gradient analysis for edge detection
+  - `ColorWeight`: Enhanced color-based edge detection for similarly bright but differently colored regions
 
-## 🛠️ Technologies Used
+## Core Components
 
-- Java
-- Swing GUI Framework
-- Dijkstra’s Algorithm
-- Graph Data Structures
-- Java Multithreading (`SwingWorker`)
+### Selection Models
+- Abstract `SelectionModel` defining selection state management and interactions
+- `PointToPointSelectionModel` for straight-line selections
+- `ScissorsSelectionModel` for edge-following selections
 
-## 📷 How It Works
+### Graph-Based Path Finding
+- Image pixels represented as graph vertices with weighted edges
+- Dijkstra's algorithm implementation for optimal path detection
+- Custom `HeapMinQueue` priority queue implementation using binary heap + hash table
+- Asynchronous path computation with progress reporting
 
-1. **Load an Image** into the app.
-2. **Click to Select Points** on the boundary.
-3. **Auto-trace Path** between points using graph-based shortest paths.
-4. **Preview & Save** the selected boundary.
+### UI Components
+- `ImagePanel`: Main component for displaying images and handling selection overlay
+- `SelectionComponent`: Interactive overlay for selection interactions
+- `SelectorApp`: Main application class managing UI components and user interactions
 
-## 📂 File Structure
+## Key Implementation Details
 
+```
+|-- graph/
+|   |-- Edge.java                    # Interface for directed edges in a graph
+|   |-- Graph.java                   # Interface for directed graph structure
+|   |-- HeapMinQueue.java            # Efficient priority queue implementation
+|   |-- MinQueue.java                # Priority queue interface
+|   |-- PathfindingSnapshot.java     # Captures state of pathfinding progress
+|   |-- RefMinQueue.java             # Reference priority queue implementation
+|   |-- ShortestPaths.java           # Dijkstra's algorithm implementation
+|   |-- Vertex.java                  # Interface for graph vertices
+|   |-- Weigher.java                 # Interface for edge weight functions
+|-- scissors/
+|   |-- ImageGraph.java              # Graph representation of image pixels
+|   |-- ImagePathsSnapshot.java      # Visualization of pathfinding progress
+|   |-- PolyLineBuffer.java          # Utility for building polylines
+|   |-- ScissorsSelectionModel.java  # Intelligent selection implementation
+|   |-- ScissorsWeights.java         # Edge weight functions for image features
+|-- selector/
+|   |-- ImagePanel.java              # Component for displaying the image
+|   |-- PointToPointSelectionModel.java # Simple line segment selection
+|   |-- PolyLine.java                # Immutable path of line segments
+|   |-- SelectionComponent.java      # Overlay for selection interaction
+|   |-- SelectionModel.java          # Abstract selection model
+|   |-- SelectorApp.java             # Main application class
+```
+
+## Technical Features
+
+- Concurrent processing using SwingWorker for non-blocking UI
+- Property change propagation for model-view communication
+- Binary heap + hash table data structure for O(log n) priority queue operations
+- Visual feedback during pathfinding with frontier/settled pixel visualization
+- Interactive control point manipulation for selection refinement
+- Image processing using Java's BufferedImage and Raster APIs
+
+## Requirements
+
+- Java 17 or higher
+- Swing-compatible environment
+
+## Implementation Notes
+
+- The intelligent scissors implementation is based on graph algorithms with image gradient analysis
+- Edge weights are calculated using perpendicular gradient analysis at pixel boundaries
+- Binary heap with hash table indexing enables efficient priority updates for Dijkstra's algorithm
+- Background thread processing with progress reporting for responsive UI
+- Custom polygon extraction with alpha channel for saving selections
